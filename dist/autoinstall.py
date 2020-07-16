@@ -16,10 +16,14 @@ def nowversion(): #берем версию программы установле
     return tmp
 
 def if_ARM_online(arm):
-    response = pythonping.ping(arm, count=1)
-    if response.success():
-        print(arm + ' доступен')
-    else:
+    try:
+        response = pythonping.ping(arm, count=1)
+        if response.success():
+            print(arm + ' доступен')
+        else:
+            print(arm + ' не доступен')
+            return False
+    except:
         print(arm + ' не доступен')
         return False
 
@@ -27,6 +31,10 @@ def logwritting(data):
     with open(way_to + '\\log.txt', 'a')as logfile:
         logfile.write(data + '\n')
 
+def Copying():
+    print('Copy distrib file to ' + row)
+    shutil.copytree(way_to + "\soft", '\\\\' + row + "\c$\psexec")
+    print('file copyng complete')
 
 
 ## заводим переменные
@@ -36,7 +44,7 @@ DT_version = 'DT-5.14.7-release-Spb-35245.msi' #фактическое назв�
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
 
-way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml'
+way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' # где лежит файл сеттингов на удаленной ммашине
 oper112_xml = way_to + '\\usersetting\\oper112\\UserSettings.xml'
 zamnachsmen_xml = way_to + '\\usersetting\\zamnachsmen\\UserSettings.xml'
 user_sttings_inuse = oper112_xml
@@ -63,22 +71,19 @@ if question_yn.lower() == 'y':
             row = row.strip()
             logwritting(linebreake)
             logwritting(row)
-
             print(linebreake)  # отделить строчкой утсановку разных армов
 
             #определяем, доступен ли АРМ
             if  if_ARM_online(row) == False:
                 logwritting('не доступен')
                 continue
-            try:
-                print('Starting instalation, copy distrib file to ' + row)
-                shutil.copytree(way_to +"\soft", '\\\\' + row + "\c$\psexec")
+            try:#копирование дистрибутива
+                Copying()
             except FileExistsError:
-                print('folder allready exist, deleting')
+                print('Folder allready exist, deleting')
                 shutil.rmtree('\\\\' + row + "\c$\psexec")
-                print('trying to copy one more time')
-                shutil.copytree(way_to + "\soft", '\\\\' + row + "\c$\psexec")
-                print('file copyng complete')
+                Copying()
+
             print('close  DispatchTerminal program on ' + row)
             os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
 
