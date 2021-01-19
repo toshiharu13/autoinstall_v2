@@ -5,10 +5,12 @@ import datetime
 
 def nowversion(): #берем версию программы установленной сейчас
     os.system('wmic /NODE:\"' + row + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product get name| findstr \"' + name_programm + '\">\"' + way_to + '\\temp\\\"' + row + '.txt')
-    if os.stat(way_to + '\\temp\\' + row + '.txt').st_size == 0:
+    if os.stat(f'{way_to}\\temp\\{row}.txt').st_size == 0:
+    #if os.stat(way_to + '\\temp\\' + row + '.txt').st_size == 0:
         print('Программы не найдено')
         tmp = ''
-    with open(way_to + '\\temp\\' + row + '.txt') as t:
+    with open(f'{way_to}\\temp\\{row}.txt') as t:
+    #with open(way_to + '\\temp\\' + row + '.txt') as t:
         for tmp in t:
             tmp = tmp.encode('cp1251').decode('cp866').strip()
 
@@ -28,8 +30,10 @@ def if_ARM_online(arm):
         return False
 
 def logwritting(data):
-    with open(way_to + '\\log.txt', 'a')as logfile:
+    with open(f'{way_to}\\log.txt', 'a')as logfile:
+    #with open(way_to + '\\log.txt', 'a')as logfile:
         logfile.write(data + '\n')
+
 
 def Copying():
     print(f'Copy distrib file to {row}')
@@ -39,7 +43,7 @@ def Copying():
 
 # заводим переменные
 name_programm = 'Дежурн' #поиск программы ведется по этому словосочетанию
-DT_version = 'DT-7.11.11-release-Spb-37474.msi' # фактическое название файла утсановки + визуально понятно какая версия
+DT_version = 'DT-5.14.10-release-Spb-36801.msi' # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
@@ -47,6 +51,7 @@ way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' 
 oper112_xml = way_to + '\\usersetting\\oper112\\UserSettings.xml'
 zamnachsmen_xml = way_to + '\\usersetting\\zamnachsmen\\UserSettings.xml'
 user_sttings_inuse = oper112_xml
+is_change_roll = True # ставим флаг на смену роли
 linebreake = '********************'
 
 #подгатавливаем файл логов к записи событий данной сессии
@@ -54,7 +59,7 @@ with open(f'{way_to}\\log.txt', 'w') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
 
 with open(f'{way_to}\list.txt') as list_of_arms:
-    print('Warning! automatic install' + DT_version + ' will be iniciated on hosts below!')
+    print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
     for row_t in list_of_arms:
         print(row_t)
 print(f'way to UserSettings {user_sttings_inuse}')
@@ -80,7 +85,8 @@ if question_yn.lower() == 'y':
                 Copying()
             except FileExistsError:
                 print('Folder allready exist, deleting')
-                shutil.rmtree('\\\\' + row + "\c$\psexec")
+                shutil.rmtree(f'\\\\{row}\\c$\\psexec')
+                #shutil.rmtree('\\\\' + row + "\c$\psexec")
                 Copying()
 
             print('close  DispatchTerminal program on ' + row)
@@ -94,20 +100,23 @@ if question_yn.lower() == 'y':
 
                 #удаляем установленную старую версию
                 os.system('wmic /NODE:\"' + row + '\" /USER:\"' +user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm +'\" uninstall')
-                print(tmpprogramm + 'is uninstalled')
+                print(f'{tmpprogramm} is uninstalled')
             else:
                 # если программы нет, предполагаем, что первый раз, копируем файл настроек
                 print('copyng xml file of user settings')
-                shutil.copyfile(user_sttings_inuse, '\\\\' + row +'\\' + way_to_copy_xml)
+                shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
 
             #устанавливаем новую версию
             print('installing new version of soft')
             os.system(way_to + '\\psexec.exe \\\\' + row + ' -u ' + user + ' -p '+ pasw + ' -h msiexec.exe /i \"C:\\psexec\\' + DT_version + '\"')
             print('delete remote folder with distrib file')
-            shutil.rmtree('\\\\' + row + "\c$\psexec")
+            shutil.rmtree(f'\\\\{row}\\c$\\psexec')
+            if is_change_roll== True:
+                print(f'copying role of {user_sttings_inuse}')
+                shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
             print('checking version')
             nowinstall = nowversion()
-            print('installing ', nowinstall, 'on ' + row +' complete')
+            print(f'installing {nowinstall} on {row} complete')
             logwritting(nowinstall)
 
 
