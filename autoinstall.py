@@ -44,6 +44,24 @@ def taskkill():
     print(f'close  DispatchTerminal program on {row}')
     os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
 
+def makedir():
+    print('Создаём необходимые директории и копируем файл настроек')
+    dirprotei = f'\\\\{row}\\c$\\ProgramData\\Protei'
+    dirdispach = f'\\\\{row}\\c$\\ProgramData\\Protei\\DispatchTerminal'
+    try:
+        os.mkdir(dirprotei)
+    except OSError:
+        print(f'Создать директорию {dirprotei} не удалось')
+    try:
+        os.mkdir(dirdispach)
+    except OSError:
+        print(f'Создать директорию {dirdispach} не удалось')
+    try:
+        shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
+    except OSError:
+        print(f'Не удалось скопировать файл настроек')
+
+
 # заводим переменные
 name_programm = 'Дежурн' #поиск программы ведется по этому словосочетанию
 DT_version = 'DT-7.11.12-release-Spb-37552.msi' # фактическое название файла утсановки + визуально понятно какая версия
@@ -54,7 +72,8 @@ way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' 
 oper112_xml = way_to + '\\usersetting\\oper112\\UserSettings.xml'
 zamnachsmen_xml = way_to + '\\usersetting\\zamnachsmen\\UserSettings.xml'
 user_sttings_inuse = oper112_xml
-is_change_roll = True # ставим флаг на смену роли
+is_change_roll = False # ставим флаг на смену роли
+first_install = True
 linebreake = '********************'
 
 #подгатавливаем файл логов к записи событий данной сессии
@@ -66,8 +85,12 @@ with open(f'{way_to}\list.txt') as list_of_arms:
     for row_t in list_of_arms:
         print(row_t)
 print(f'way to UserSettings {user_sttings_inuse}')
-print('old version DT will be removed')
-print('Dispatch.exe process will be stoped')
+if first_install:
+    print('New instalation')
+else:
+    print('old version DT will be removed')
+    print('Dispatch.exe process will be stoped')
+print(f'change role = {is_change_roll}')
 question_yn = input('Do you want to continue? Y/N ')
 if question_yn.lower() == 'y':
     user = 'gmc\\' + input('type username ')
@@ -102,9 +125,9 @@ if question_yn.lower() == 'y':
                 print(f'{tmpprogramm} is uninstalled')
             else:
                 taskkill()
-                print('copyng xml after install programm')
-                #shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
-
+            # создаём директории настроек, копируем файл настроек
+            if first_install:
+                makedir()
             #устанавливаем новую версию
             print('installing new version of soft')
             os.system(way_to + '\\psexec.exe \\\\' + row + ' -u ' + user + ' -p '+ pasw + ' -h msiexec.exe /i \"C:\\psexec\\' + DT_version + '\"')
@@ -129,6 +152,3 @@ print(linebreake)
 #циклим чтобы при исполнении ехе не закрывался терминал
 while True:
     pass
-
-
-
