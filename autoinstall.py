@@ -40,10 +40,13 @@ def Copying():
     shutil.copytree(way_to + "\soft", '\\\\' + row + "\c$\psexec")
     print('file copyng complete')
 
+def taskkill():
+    print(f'close  DispatchTerminal program on {row}')
+    os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
 
 # заводим переменные
 name_programm = 'Дежурн' #поиск программы ведется по этому словосочетанию
-DT_version = 'DT-5.14.10-release-Spb-36801.msi' # фактическое название файла утсановки + визуально понятно какая версия
+DT_version = 'DT-7.11.12-release-Spb-37552.msi' # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
@@ -86,25 +89,21 @@ if question_yn.lower() == 'y':
             except FileExistsError:
                 print('Folder allready exist, deleting')
                 shutil.rmtree(f'\\\\{row}\\c$\\psexec')
-                #shutil.rmtree('\\\\' + row + "\c$\psexec")
                 Copying()
-
-            print('close  DispatchTerminal program on ' + row)
-            os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
 
             #узнаём версию установленного ПО
             print('searching old soft')
             tmpprogramm = nowversion()
             if tmpprogramm != '':
-                print(f'uninstalling {tmpprogramm}')
-
+                print(f'find {tmpprogramm}, uninstalling')
+                taskkill()
                 #удаляем установленную старую версию
                 os.system('wmic /NODE:\"' + row + '\" /USER:\"' +user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm +'\" uninstall')
                 print(f'{tmpprogramm} is uninstalled')
             else:
-                # если программы нет, предполагаем, что первый раз, копируем файл настроек
-                print('copyng xml file of user settings')
-                shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
+                taskkill()
+                print('copyng xml after install programm')
+                #shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
 
             #устанавливаем новую версию
             print('installing new version of soft')
