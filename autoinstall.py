@@ -3,14 +3,14 @@ import shutil
 import pythonping
 import datetime
 
-def nowversion(): #берем версию программы установленной сейчас
+
+# берем версию программы установленной сейчас
+def nowversion():
     os.system('wmic /NODE:\"' + row + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product get name| findstr \"' + name_programm + '\">\"' + way_to + '\\temp\\\"' + row + '.txt')
     if os.stat(f'{way_to}\\temp\\{row}.txt').st_size == 0:
-    #if os.stat(way_to + '\\temp\\' + row + '.txt').st_size == 0:
         print('Программы не найдено')
         tmp = ''
     with open(f'{way_to}\\temp\\{row}.txt') as t:
-    #with open(way_to + '\\temp\\' + row + '.txt') as t:
         for tmp in t:
             tmp = tmp.encode('cp1251').decode('cp866').strip()
 
@@ -31,7 +31,6 @@ def if_ARM_online(arm):
 
 def logwritting(data):
     with open(f'{way_to}\\log.txt', 'a')as logfile:
-    #with open(way_to + '\\log.txt', 'a')as logfile:
         logfile.write(data + '\n')
 
 
@@ -63,7 +62,7 @@ def makedir():
 
 
 # заводим переменные
-name_programm = 'Дежурн' #поиск программы ведется по этому словосочетанию
+name_programm = 'Дежурн' # поиск программы ведется по этому словосочетанию
 DT_version = 'DT-7.11.12-release-Spb-37552.msi' # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
@@ -76,7 +75,7 @@ is_change_roll = False # ставим флаг на смену роли
 first_install = True
 linebreake = '********************'
 
-#подгатавливаем файл логов к записи событий данной сессии
+# подгатавливаем файл логов к записи событий данной сессии
 with open(f'{way_to}\\log.txt', 'w') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
 
@@ -86,7 +85,7 @@ with open(f'{way_to}\list.txt') as list_of_arms:
         print(row_t)
 print(f'way to UserSettings {user_sttings_inuse}')
 if first_install:
-    print('New instalation')
+    print('first instalation')
 else:
     print('old version DT will be removed')
     print('Dispatch.exe process will be stoped')
@@ -95,32 +94,34 @@ question_yn = input('Do you want to continue? Y/N ')
 if question_yn.lower() == 'y':
     user = 'gmc\\' + input('type username ')
     pasw = input('type password ')
-
-    with open(f'{way_to}\list.txt') as list_of_arms: #читаем названия армов из файла list.txt
+    # читаем названия армов из файла list.txt
+    with open(f'{way_to}\list.txt') as list_of_arms:
         for row in list_of_arms:
             row = row.strip()
             logwritting(linebreake)
             logwritting(row)
-            print(linebreake)  # отделить строчкой утсановку разных армов
+            # отделить строчкой утсановку разных армов
+            print(linebreake)
 
-            #определяем, доступен ли АРМ
+            # определяем, доступен ли АРМ
             if  if_ARM_online(row) == False:
                 logwritting('не доступен')
                 continue
-            try:#копирование дистрибутива
+            # копирование дистрибутива
+            try:
                 Copying()
             except FileExistsError:
                 print('Folder allready exist, deleting')
                 shutil.rmtree(f'\\\\{row}\\c$\\psexec')
                 Copying()
 
-            #узнаём версию установленного ПО
+            # узнаём версию установленного ПО
             print('searching old soft')
             tmpprogramm = nowversion()
             if tmpprogramm != '':
                 print(f'find {tmpprogramm}, uninstalling')
                 taskkill()
-                #удаляем установленную старую версию
+                # удаляем установленную старую версию
                 os.system('wmic /NODE:\"' + row + '\" /USER:\"' +user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm +'\" uninstall')
                 print(f'{tmpprogramm} is uninstalled')
             else:
@@ -128,7 +129,7 @@ if question_yn.lower() == 'y':
             # создаём директории настроек, копируем файл настроек
             if first_install:
                 makedir()
-            #устанавливаем новую версию
+            # устанавливаем новую версию
             print('installing new version of soft')
             os.system(way_to + '\\psexec.exe \\\\' + row + ' -u ' + user + ' -p '+ pasw + ' -h msiexec.exe /i \"C:\\psexec\\' + DT_version + '\"')
             print('delete remote folder with distrib file')
@@ -145,10 +146,10 @@ if question_yn.lower() == 'y':
 
 else:
     print('escaping instalation...')
-#зрительно отделяем последнюю этерацию
+# зрительно отделяем последнюю этерацию
 print(linebreake)
 print(linebreake)
 
-#циклим чтобы при исполнении ехе не закрывался терминал
-while True:
-    pass
+# циклим чтобы при исполнении ехе не закрывался терминал
+'''while True:
+    pass'''
