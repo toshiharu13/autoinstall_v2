@@ -43,7 +43,7 @@ def taskkill():
     print(f'close  DispatchTerminal program on {row}')
     os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
 
-def makedir():
+def makedir_cfg():
     print('Создаём необходимые директории и копируем файл настроек')
     dirprotei = f'\\\\{row}\\c$\\ProgramData\\Protei'
     dirdispach = f'\\\\{row}\\c$\\ProgramData\\Protei\\DispatchTerminal'
@@ -59,6 +59,16 @@ def makedir():
         shutil.copyfile(user_sttings_inuse, f'\\\\{row}\\{way_to_copy_xml}')
     except OSError:
         print(f'Не удалось скопировать файл настроек')
+
+def makdir_files():
+    # проверяем наличие temp папки
+    dirtemp = f'{way_to}\\temp'
+    try:
+        os.mkdir(dirtemp)
+        print('make temp directory')
+    except OSError:
+        print(f'cant make Directory {dirtemp} ')
+
 
 
 # заводим переменные
@@ -76,8 +86,9 @@ first_install = True
 linebreake = '********************'
 
 # подгатавливаем файл логов к записи событий данной сессии
-with open(f'{way_to}\\log.txt', 'w') as logfile:
+with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
+makdir_files()
 
 with open(f'{way_to}\list.txt') as list_of_arms:
     print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
@@ -115,20 +126,21 @@ if question_yn.lower() == 'y':
                 shutil.rmtree(f'\\\\{row}\\c$\\psexec')
                 Copying()
 
-            # узнаём версию установленного ПО
-            print('searching old soft')
-            tmpprogramm = nowversion()
-            if tmpprogramm != '':
-                print(f'find {tmpprogramm}, uninstalling')
-                taskkill()
-                # удаляем установленную старую версию
-                os.system('wmic /NODE:\"' + row + '\" /USER:\"' +user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm +'\" uninstall')
-                print(f'{tmpprogramm} is uninstalled')
-            else:
-                taskkill()
+            if first_install == False:
+                # узнаём версию установленного ПО
+                print('searching old soft')
+                tmpprogramm = nowversion()
+                if tmpprogramm != '':
+                    print(f'find {tmpprogramm}, uninstalling')
+                    taskkill()
+                    # удаляем установленную старую версию
+                    os.system('wmic /NODE:\"' + row + '\" /USER:\"' +user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm +'\" uninstall')
+                    print(f'{tmpprogramm} is uninstalled')
+                else:
+                    taskkill()
             # создаём директории настроек, копируем файл настроек
-            if first_install:
-                makedir()
+            else:
+                makedir_cfg()
             # устанавливаем новую версию
             print('installing new version of soft')
             os.system(way_to + '\\psexec.exe \\\\' + row + ' -u ' + user + ' -p '+ pasw + ' -h msiexec.exe /i \"C:\\psexec\\' + DT_version + '\"')
