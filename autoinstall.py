@@ -67,20 +67,20 @@ def makdir_files():
         os.mkdir(dirtemp)
         print('make temp directory')
     except OSError:
-        print(f'cant make Directory {dirtemp} ')
+        print(f'cant make Directory {dirtemp}, allready exist? ')
 
 
 
 # заводим переменные
 name_programm = 'Дежурн' # поиск программы ведется по этому словосочетанию
-DT_version = 'DT-7.11.12-release-Spb-37552.msi' # фактическое название файла утсановки + визуально понятно какая версия
+DT_version = 'DT-7.11.13-release-Spb-37706.msi' # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
 way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' # где лежит файл сеттингов на удаленной ммашине
 oper112_xml = way_to + '\\usersetting\\oper112\\UserSettings.xml'
-zamnachsmen_xml = way_to + '\\usersetting\\zamnachsmen\\UserSettings.xml'
-user_sttings_inuse = oper112_xml
+nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
+user_sttings_inuse = nachsmen_xml
 is_change_roll = False # ставим флаг на смену роли
 first_install = True
 linebreake = '********************'
@@ -89,7 +89,6 @@ linebreake = '********************'
 with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
 makdir_files()
-
 with open(f'{way_to}\list.txt') as list_of_arms:
     print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
     for row_t in list_of_arms:
@@ -97,6 +96,7 @@ with open(f'{way_to}\list.txt') as list_of_arms:
 print(f'way to UserSettings {user_sttings_inuse}')
 if first_install:
     print('first instalation')
+    is_change_roll = False # глупо менять роль при первой установке
 else:
     print('old version DT will be removed')
     print('Dispatch.exe process will be stoped')
