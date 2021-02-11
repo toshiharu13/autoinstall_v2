@@ -6,7 +6,6 @@ import datetime
 
 # берем версию программы установленной сейчас
 def nowversion():
-    #os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product get name| findstr \"' + name_programm + '\">\"' + way_to + '\\temp\\\"' + arm + '.txt')
     os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product get name| findstr \"{name_programm}\">\"{way_to}\\temp\\\"{arm}.txt')
     if os.stat(f'{way_to}\\temp\\{arm}.txt').st_size == 0:
         print('Программы не найдено')
@@ -17,6 +16,7 @@ def nowversion():
 
             break
     return tmp
+
 
 def if_arm_online(arm):
     try:
@@ -30,21 +30,23 @@ def if_arm_online(arm):
         print(f"{arm} не доступен")
         return False
 
+
 def logwritting(data):
     with open(f'{way_to}\\log.txt', 'a')as logfile:
         logfile.write(data + '\n')
 
 
-def Copying():
+def copying():
     print(f'Copy distrib file to {arm}')
-    #shutil.copytree(way_to + "\soft", '\\\\' + arm + "\c$\psexec")
     shutil.copytree(f'{way_to}\\soft', f'\\\\{arm}\\c$\\psexec')
     print('file copyng complete')
+
 
 def taskkill():
     print(f'close  DispatchTerminal program on {arm}')
     #os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
     os.system(f'taskkill.exe /s {arm} /u {user} /p {pasw} /F /T /IM  DispatchTerminal.exe')
+
 
 def makedir_cfg():
     print('Создаём необходимые директории и копируем файл настроек')
@@ -63,6 +65,7 @@ def makedir_cfg():
     except OSError:
         print(f'Не удалось скопировать файл настроек')
 
+
 def makdir_files():
     # проверяем наличие temp папки
     dirtemp = f'{way_to}\\temp'
@@ -72,29 +75,30 @@ def makdir_files():
     except OSError:
         print(f'cant make Directory {dirtemp}, allready exist? ')
 
+
 def uninstallprogramm(arm, user, pasw, tmpprogramm):
-    #os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm + '\" uninstall')
+    # os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm + '\" uninstall')
     os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product where description=\"{tmpprogramm}\" uninstall')
     print(f'{tmpprogramm} is uninstalled')
 
-def installprogramm(way_to, arm, user, pasw, DT_version):
+
+def installprogramm(way_to, arm, user, pasw, dt_version):
     print('installing new version of soft')
     os.system(
-        f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
-
+        f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{dt_version}\"')
 
 
 # заводим переменные
-name_programm = 'Дежурн' # поиск программы ведется по этому словосочетанию
-DT_version = 'DT-7.11.13-release-Spb-37706.msi' # фактическое название файла утсановки + визуально понятно какая версия
+name_programm = 'Дежурн'  # поиск программы ведется по этому словосочетанию
+DT_version = 'DT-7.11.13-release-Spb-37706.msi'  # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
-way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' # где лежит файл сеттингов на удаленной ммашине
+way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml'  # где лежит файл сеттингов на удаленной ммашине
 oper112_xml = f'{way_to}\\usersetting\\oper112\\UserSettings.xml'
 nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
 user_sttings_inuse = nachsmen_xml
-is_change_roll = False # ставим флаг на смену роли
+is_change_roll = False  # ставим флаг на смену роли
 first_install = False
 linebreake = '********************'
 
@@ -102,14 +106,14 @@ linebreake = '********************'
 with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
 makdir_files()
-with open(f'{way_to}\list.txt') as list_of_arms:
+with open(f'{way_to}\\list.txt') as list_of_arms:
     print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
     for row_t in list_of_arms:
         print(row_t)
 print(f'way to UserSettings {user_sttings_inuse}')
 if first_install:
     print('first instalation')
-    is_change_roll = False # глупо менять роль при первой установке
+    is_change_roll = False  # глупо менять роль при первой установке
 else:
     print('old version DT will be removed')
     print('Dispatch.exe process will be stoped')
@@ -119,7 +123,7 @@ if question_yn.lower() == 'y':
     user = 'gmc\\' + input('type username ')
     pasw = input('type password ')
     # читаем названия армов из файла list.txt
-    with open(f'{way_to}\list.txt') as list_of_arms:
+    with open(f'{way_to}\\list.txt') as list_of_arms:
         for arm in list_of_arms:
             arm = arm.strip()
             logwritting(linebreake)
@@ -128,18 +132,18 @@ if question_yn.lower() == 'y':
             print(linebreake)
 
             # определяем, доступен ли АРМ
-            if  if_arm_online(arm) == False:
+            if not if_arm_online(arm):
                 logwritting('не доступен')
                 continue
             # копирование дистрибутива
             try:
-                Copying()
+                copying()
             except FileExistsError:
                 print('Folder allready exist, deleting')
                 shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
-                Copying()
+                copying()
 
-            if first_install == False:
+            if not first_install:
                 # узнаём версию установленного ПО
                 print('searching old soft')
                 tmpprogramm = nowversion()
@@ -154,20 +158,19 @@ if question_yn.lower() == 'y':
             else:
                 makedir_cfg()
             # устанавливаем новую версию
-            #print('installing new version of soft')
-            #os.system(f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
+            # print('installing new version of soft')
+            # os.system(f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
             installprogramm(way_to, arm, user, pasw, DT_version)
             print('delete remote folder with distrib file')
             shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
-            if is_change_roll== True:
+            if is_change_roll:
                 print(f'copying role of {user_sttings_inuse}')
-                shutil.copyfile(user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
+                shutil.copyfile(
+                    user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
             print('checking version')
             nowinstall = nowversion()
             print(f'installing {nowinstall} on {arm} complete')
             logwritting(nowinstall)
-
-
 
 else:
     print('escaping instalation...')
