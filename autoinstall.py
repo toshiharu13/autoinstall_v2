@@ -72,6 +72,16 @@ def makdir_files():
     except OSError:
         print(f'cant make Directory {dirtemp}, allready exist? ')
 
+def uninstallprogramm(arm, user, pasw, tmpprogramm):
+    #os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm + '\" uninstall')
+    os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product where description=\"{tmpprogramm}\" uninstall')
+    print(f'{tmpprogramm} is uninstalled')
+
+def installprogramm(way_to, arm, user, pasw, DT_version):
+    print('installing new version of soft')
+    os.system(
+        f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
+
 
 
 # заводим переменные
@@ -81,7 +91,7 @@ DT_version = 'DT-7.11.13-release-Spb-37706.msi' # фактическое наз�
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
 way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml' # где лежит файл сеттингов на удаленной ммашине
-oper112_xml = way_to + '\\usersetting\\oper112\\UserSettings.xml'
+oper112_xml = f'{way_to}\\usersetting\\oper112\\UserSettings.xml'
 nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
 user_sttings_inuse = nachsmen_xml
 is_change_roll = False # ставим флаг на смену роли
@@ -137,16 +147,16 @@ if question_yn.lower() == 'y':
                     print(f'find {tmpprogramm}, uninstalling')
                     taskkill()
                     # удаляем установленную старую версию
-                    os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm + '\" uninstall')
-                    print(f'{tmpprogramm} is uninstalled')
+                    uninstallprogramm(arm, user, pasw, tmpprogramm)
                 else:
                     taskkill()
             # создаём директории настроек, копируем файл настроек
             else:
                 makedir_cfg()
             # устанавливаем новую версию
-            print('installing new version of soft')
-            os.system(way_to + '\\psexec.exe \\\\' + arm + ' -u ' + user + ' -p ' + pasw + ' -h msiexec.exe /i \"C:\\psexec\\' + DT_version + '\"')
+            #print('installing new version of soft')
+            #os.system(f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
+            installprogramm(way_to, arm, user, pasw, DT_version)
             print('delete remote folder with distrib file')
             shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
             if is_change_roll== True:
