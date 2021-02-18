@@ -23,6 +23,7 @@ def if_arm_online(arm):
         response = pythonping.ping(arm, count=1)
         if response.success():
             print(f"{arm} доступен")
+            return True
         else:
             print(f"{arm} не доступен")
             return False
@@ -66,7 +67,7 @@ def makedir_cfg():
         print(f'Не удалось скопировать файл настроек')
 
 
-def makdir_files():
+def makdir_files(way_to):
     # проверяем наличие temp папки
     dirtemp = f'{way_to}\\temp'
     try:
@@ -105,7 +106,7 @@ linebreake = '********************'
 # подгатавливаем файл логов к записи событий данной сессии
 with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
-makdir_files()
+makdir_files(way_to)
 with open(f'{way_to}\\list.txt') as list_of_arms:
     print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
     for row_t in list_of_arms:
