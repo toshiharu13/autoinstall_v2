@@ -101,6 +101,7 @@ nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
 user_sttings_inuse = nachsmen_xml
 is_change_roll = False  # ставим флаг на смену роли
 first_install = False
+no_install = True
 linebreake = '********************'
 
 # подгатавливаем файл логов к записи событий данной сессии
@@ -113,8 +114,10 @@ with open(f'{way_to}\\list.txt') as list_of_arms:
         print(row_t)
 print(f'way to UserSettings {user_sttings_inuse}')
 if first_install:
-    print('first instalation')
+    print('first instalation, no role changing')
     is_change_roll = False  # глупо менять роль при первой установке
+elif no_install:
+    print('no installation, only change role')
 else:
     print('old version DT will be removed')
     print('Dispatch.exe process will be stoped')
@@ -131,6 +134,11 @@ if question_yn.lower() == 'y':
             logwritting(arm)
             # отделить строчкой утсановку разных армов
             print(linebreake)
+            if no_install:
+                print(f'copying role of {user_sttings_inuse}')
+                shutil.copyfile(
+                    user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
+                continue
 
             # определяем, доступен ли АРМ
             if not if_arm_online(arm):
