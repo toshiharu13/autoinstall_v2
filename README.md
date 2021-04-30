@@ -9,6 +9,7 @@ this programm:
 6)may rewrite "settings" file
 7)check new version od soft
 8) write result to lof file
-you may change setting with or without installing soft
+
+You may change setting with or without installing soft
 To run - Just copy and run
 In plan to merge 'autoupdater' and 'know_what' in one project
