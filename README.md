@@ -1,4 +1,5 @@
-# autoinstall_v2
+# Программа установки прграмм в доменной сети autoinstall_v2
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
 autoupdater/installer for win based programms, created for my issue, but you may change for your tasks.
 this programm: 
 1)copping distrib to remote host 
