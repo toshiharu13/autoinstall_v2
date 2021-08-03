@@ -2,9 +2,9 @@
 [![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
 autoupdater/installer for win based programms, created for my issue, but you may change for your tasks.
 this programm: 
-1)copping distrib to remote host 
-2)stop running programm(update needed) 
-3)check version of soft
+1)copping distrib to remote hostю. 
+2)stop running programm(update needed).
+3)check version of soft.
 4)uninstall old version
 5)install new version
 6)may rewrite "settings" file
