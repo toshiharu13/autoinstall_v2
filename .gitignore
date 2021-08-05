@@ -1,0 +1,34 @@
+# *.[oa]
+# *~
+!dist/
+dist/*
+!dist/*.me
+
+!soft/
+soft/*
+!soft/*.me
+
+!temp/
+temp/*
+!temp/*.me
+
+log.txt
+
+*.xml
+
+!usersetting/
+usersetting/ksomb/*
+!usersetting/ksomb/*.me
+usersetting/oper112/*
+!usersetting/oper112/*.me
+usersetting/zamnachsmen/*
+!usersetting/zamnachsmen/*.me
+
+.git/*
+env/
+venv/
+.venv
+.venv/
+
+
+.idea

@@ -5,7 +5,7 @@ import datetime
 
 
 # берем версию программы установленной сейчас
-def nowversion():
+def nowversion(arm, user, pasw, name_programm, way_to):
     os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product get name| findstr \"{name_programm}\">\"{way_to}\\temp\\\"{arm}.txt')
     if os.stat(f'{way_to}\\temp\\{arm}.txt').st_size == 0:
         print('Программы не найдено')
@@ -45,7 +45,6 @@ def copying():
 
 def taskkill():
     print(f'close  DispatchTerminal program on {arm}')
-    #os.system('taskkill.exe /s ' + row + ' /u ' + user + ' /p ' + pasw + '  /F /T /IM  DispatchTerminal.exe')
     os.system(f'taskkill.exe /s {arm} /u {user} /p {pasw} /F /T /IM  DispatchTerminal.exe')
 
 
@@ -91,17 +90,19 @@ def installprogramm(way_to, arm, user, pasw, dt_version):
 
 # заводим переменные
 name_programm = 'Дежурн'  # поиск программы ведется по этому словосочетанию
-DT_version = 'DT-7.11.13-release-Spb-37706.msi'  # фактическое название файла утсановки + визуально понятно какая версия
+DT_version = 'DT-7.21.1-release-Spb-38533.msi'  # фактическое название файла утсановки + визуально понятно какая версия
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
 way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml'  # где лежит файл сеттингов на удаленной ммашине
 oper112_xml = f'{way_to}\\usersetting\\oper112\\UserSettings.xml'
 nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
-user_sttings_inuse = nachsmen_xml
+zamnach_xml = f'{way_to}\\usersetting\\zamnach\\UserSettings.xml'
+zamnach_cout_xml = f'{way_to}\\usersetting\\zamnach_cout\\UserSettings.xml'
+user_sttings_inuse = zamnach_xml
 is_change_roll = False  # ставим флаг на смену роли
-first_install = False
-no_install = True
+first_install = False  # первая установка нужно копирование файла настройки
+no_install = False  # просто меняем роль без установки
 linebreake = '********************'
 
 # подгатавливаем файл логов к записи событий данной сессии
@@ -152,10 +153,11 @@ if question_yn.lower() == 'y':
                 shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
                 copying()
 
+            # если флаг первой установки False
             if not first_install:
                 # узнаём версию установленного ПО
                 print('searching old soft')
-                tmpprogramm = nowversion()
+                tmpprogramm = nowversion(arm, user, pasw, name_programm, way_to)
                 if tmpprogramm != '':
                     print(f'find {tmpprogramm}, uninstalling')
                     taskkill()
@@ -167,17 +169,20 @@ if question_yn.lower() == 'y':
             else:
                 makedir_cfg()
             # устанавливаем новую версию
-            # print('installing new version of soft')
-            # os.system(f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{DT_version}\"')
             installprogramm(way_to, arm, user, pasw, DT_version)
+            # удаляем файлы дистрибутива
             print('delete remote folder with distrib file')
             shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
+
+            # если флаг смены роли, перезаписываем файл настроек
             if is_change_roll:
                 print(f'copying role of {user_sttings_inuse}')
                 shutil.copyfile(
                     user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
+
+            # проверяем версию установленной программы
             print('checking version')
-            nowinstall = nowversion()
+            nowinstall = nowversion(arm, user, pasw, name_programm, way_to)
             print(f'installing {nowinstall} on {arm} complete')
             logwritting(nowinstall)
 
