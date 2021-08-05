@@ -108,11 +108,16 @@ linebreake = '********************'
 # подгатавливаем файл логов к записи событий данной сессии
 with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
+
+# создаём папку для временных файлов
 makdir_files(way_to)
+
+# печатаем список компьютеров где будутпроводиться работы
 with open(f'{way_to}\\list.txt') as list_of_arms:
     print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
     for row_t in list_of_arms:
         print(row_t)
+
 print(f'way to UserSettings {user_sttings_inuse}')
 if first_install:
     print('first instalation, no role changing')
@@ -125,16 +130,20 @@ else:
 print(f'change role = {is_change_roll}')
 question_yn = input('Do you want to continue? Y/N ')
 if question_yn.lower() == 'y':
-    user = 'gmc\\' + input('type username ')
+    domen = input('type domen ')
+    user = f'{domen}\\' + input('type username ')
     pasw = input('type password ')
+
     # читаем названия армов из файла list.txt
     with open(f'{way_to}\\list.txt') as list_of_arms:
         for arm in list_of_arms:
             arm = arm.strip()
             logwritting(linebreake)
             logwritting(arm)
+
             # отделить строчкой утсановку разных армов
             print(linebreake)
+            
             if no_install:
                 print(f'copying role of {user_sttings_inuse}')
                 shutil.copyfile(
