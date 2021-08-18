@@ -172,7 +172,7 @@ if question_yn.lower() == 'y':
                 continue
 
             # копирование дистрибутива
-            print('Копирование дистрибутива в папке на удаленный АРМ')
+            copying(arm, way_to)
 
             # если флаг первой установки False
             if not first_install:
