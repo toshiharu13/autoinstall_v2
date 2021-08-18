@@ -35,13 +35,19 @@ def logwritting(data):
         logfile.write(data + '\n')
 
 
-def copying():
+def copying(arm, way_to):
+    """
+    Копируемнеобходимый дистрибутив на удаленный компьютер
+    """
     print(f'Copy distrib file to {arm}')
     shutil.copytree(f'{way_to}\\soft', f'\\\\{arm}\\c$\\psexec')
-    print('file copyng complete')
+    print('file copying complete')
 
 
-def taskkill():
+def taskkill(arm, user, pasw):
+    """
+    Прекращаем выполнение программы на удаленном компьютере
+    """
     print(f'close  DispatchTerminal program on {arm}')
     os.system(f'taskkill.exe /s {arm} /u {user} /p {pasw} /F /T /IM  DispatchTerminal.exe')
 
@@ -156,11 +162,11 @@ if question_yn.lower() == 'y':
                 continue
             # копирование дистрибутива
             try:
-                copying()
+                copying(arm, way_to)
             except FileExistsError:
                 print('Folder allready exist, deleting')
                 shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
-                copying()
+                copying(arm, way_to)
 
             # если флаг первой установки False
             if not first_install:
@@ -169,7 +175,7 @@ if question_yn.lower() == 'y':
                 tmpprogramm = nowversion(arm, user, pasw, name_programm)
                 if tmpprogramm:
                     print(f'find {tmpprogramm}, uninstalling')
-                    taskkill()
+                    taskkill(arm, user, pasw)
                     # удаляем установленную старую версию
                     uninstallprogramm(arm, user, pasw, tmpprogramm)
                 else:
