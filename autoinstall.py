@@ -11,9 +11,11 @@ def nowversion(arm, user, pasw, name_programm):
     """
     cmd = f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product get name| findstr \"{name_programm}\"'
     output = os.popen(cmd, 'r')
-    for file in output:
-        file = file.encode('cp1251', 'replace').decode('cp866').strip()
-        return file
+    templist = []
+    for row in output:
+        row = row.encode('cp1251', 'replace').decode('cp866').strip()
+        templist.append(row)
+        return templist[0]
 
 
 def if_arm_online(arm):
@@ -48,36 +50,41 @@ def taskkill(arm, user, pasw):
     """
     Прекращаем выполнение программы на удаленном компьютере
     """
-    print(f'close  DispatchTerminal program on {arm}')
-    os.system(f'taskkill.exe /s {arm} /u {user} /p {pasw} /F /T /IM  DispatchTerminal.exe')
+    cmd = f'taskkill.exe /s {arm} /u {user} /p {pasw} /F /T /IM  DispatchTerminal.exe'
+    output = os.popen(cmd)
+    temp_list = []
+    for row in output:
+        row = row.encode('cp1251', 'replace').decode('cp866').strip()
+        temp_list.append(row)
+    print(f'На {arm}:')
+    print(*temp_list)
 
 
-def makedir_cfg():
+def makedir_cfg(arm, way_to_copy_xml, user_sttings_inuse):
+    """
+    Создаём необходимые директории и копируем файл настроек
+    """
     print('Создаём необходимые директории и копируем файл настроек')
-    dirprotei = f'\\\\{arm}\\c$\\ProgramData\\Protei'
-    dirdispach = f'\\\\{arm}\\c$\\ProgramData\\Protei\\DispatchTerminal'
+    dirprotei = f'\\\\{arm}\\{way_to_copy_xml[:21]}'
+    dirdispach = f'\\\\{arm}\\{way_to_copy_xml[:38]}'
     try:
         os.mkdir(dirprotei)
+        print(f'Директория {dirprotei} создана')
     except OSError:
         print(f'Создать директорию {dirprotei} не удалось')
+
     try:
         os.mkdir(dirdispach)
+        print(f'Директория {dirdispach} создана')
     except OSError:
         print(f'Создать директорию {dirdispach} не удалось')
+
+    print(f'Копируем файл настроек в {dirdispach}')
     try:
         shutil.copyfile(user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
+        print('Скопировано успешно')
     except OSError:
-        print(f'Не удалось скопировать файл настроек')
-
-
-def makdir_files(way_to):
-    # проверяем наличие temp папки
-    dirtemp = f'{way_to}\\temp'
-    try:
-        os.mkdir(dirtemp)
-        print('make temp directory')
-    except OSError:
-        print(f'cant make Directory {dirtemp}, allready exist? ')
+        print('Не удалось скопировать файл настроек')
 
 
 def uninstallprogramm(arm, user, pasw, tmpprogramm):
@@ -91,12 +98,14 @@ def installprogramm(way_to, arm, user, pasw, dt_version):
         f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{dt_version}\"')
 
 
-# заводим переменные
+
 name_programm = 'Дежурн'  # поиск программы ведется по этому словосочетанию
 DT_version = 'DT-7.21.1-release-Spb-38533.msi'  # фактическое название файла утсановки + визуально понятно какая версия
+
 # динамичное определение папки, где всё хранится
 way_to = os.path.abspath(__file__)
 way_to = os.path.dirname(way_to)
+
 way_to_copy_xml = 'c$\\ProgramData\\Protei\\DispatchTerminal\\UserSettings.xml'  # где лежит файл сеттингов на удаленной ммашине
 oper112_xml = f'{way_to}\\usersetting\\oper112\\UserSettings.xml'
 nachsmen_xml = f'{way_to}\\usersetting\\nachsmen\\UserSettings.xml'
@@ -111,9 +120,6 @@ linebreake = '********************'
 # подгатавливаем файл логов к записи событий данной сессии
 with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
-
-# создаём папку для временных файлов
-# makdir_files(way_to)
 
 # печатаем список компьютеров где будутпроводиться работы
 with open(f'{way_to}\\list.txt') as list_of_arms:
@@ -182,7 +188,7 @@ if question_yn.lower() == 'y':
                     print('Программы не найдено')
             # создаём директории настроек, копируем файл настроек
             else:
-                makedir_cfg()
+                makedir_cfg(arm, way_to_copy_xml, user_sttings_inuse)
             # устанавливаем новую версию
             installprogramm(way_to, arm, user, pasw, DT_version)
             # удаляем файлы дистрибутива
@@ -206,6 +212,7 @@ if question_yn.lower() == 'y':
 
 else:
     print('escaping instalation...')
+
 # зрительно отделяем последнюю этерацию
 print(linebreake)
 print(linebreake)
