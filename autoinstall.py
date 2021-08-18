@@ -4,18 +4,16 @@ import pythonping
 import datetime
 
 
-# берем версию программы установленной сейчас
-def nowversion(arm, user, pasw, name_programm, way_to):
-    os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product get name| findstr \"{name_programm}\">\"{way_to}\\temp\\\"{arm}.txt')
-    if os.stat(f'{way_to}\\temp\\{arm}.txt').st_size == 0:
-        print('Программы не найдено')
-        tmp = ''
-    with open(f'{way_to}\\temp\\{arm}.txt') as t:
-        for tmp in t:
-            tmp = tmp.encode('cp1251').decode('cp866').strip()
+def nowversion(arm, user, pasw, name_programm):
+    """
+    Узнаём версию программы установленной сейчас на удаленном компьютере
 
-            break
-    return tmp
+    """
+    cmd = f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product get name| findstr \"{name_programm}\"'
+    output = os.popen(cmd, 'r')
+    for file in output:
+        file = file.encode('cp1251', 'replace').decode('cp866').strip()
+        return file
 
 
 def if_arm_online(arm):
@@ -77,7 +75,6 @@ def makdir_files(way_to):
 
 
 def uninstallprogramm(arm, user, pasw, tmpprogramm):
-    # os.system('wmic /NODE:\"' + arm + '\" /USER:\"' + user + '\" /password: \"' + pasw + '\" product where description=\"' + tmpprogramm + '\" uninstall')
     os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product where description=\"{tmpprogramm}\" uninstall')
     print(f'{tmpprogramm} is uninstalled')
 
@@ -110,11 +107,14 @@ with open(f'{way_to}\\log.txt', 'w+') as logfile:
     logfile.write(str(datetime.datetime.now()) + '\n')
 
 # создаём папку для временных файлов
-makdir_files(way_to)
+# makdir_files(way_to)
 
 # печатаем список компьютеров где будутпроводиться работы
 with open(f'{way_to}\\list.txt') as list_of_arms:
-    print(f'Warning! automatic install {DT_version} will be iniciated on hosts below!')
+    print(
+        f'Warning! automatic install {DT_version} '
+        f'will be iniciated on hosts below!'
+    )
     for row_t in list_of_arms:
         print(row_t)
 
@@ -143,7 +143,7 @@ if question_yn.lower() == 'y':
 
             # отделить строчкой утсановку разных армов
             print(linebreake)
-            
+
             if no_install:
                 print(f'copying role of {user_sttings_inuse}')
                 shutil.copyfile(
@@ -166,14 +166,14 @@ if question_yn.lower() == 'y':
             if not first_install:
                 # узнаём версию установленного ПО
                 print('searching old soft')
-                tmpprogramm = nowversion(arm, user, pasw, name_programm, way_to)
-                if tmpprogramm != '':
+                tmpprogramm = nowversion(arm, user, pasw, name_programm)
+                if tmpprogramm:
                     print(f'find {tmpprogramm}, uninstalling')
                     taskkill()
                     # удаляем установленную старую версию
                     uninstallprogramm(arm, user, pasw, tmpprogramm)
                 else:
-                    taskkill()
+                    print('Программы не найдено')
             # создаём директории настроек, копируем файл настроек
             else:
                 makedir_cfg()
@@ -191,8 +191,11 @@ if question_yn.lower() == 'y':
 
             # проверяем версию установленной программы
             print('checking version')
-            nowinstall = nowversion(arm, user, pasw, name_programm, way_to)
-            print(f'installing {nowinstall} on {arm} complete')
+            nowinstall = nowversion(arm, user, pasw, name_programm)
+            if nowinstall:
+                print(f'installing {nowinstall} on {arm} complete')
+            else:
+                print('Прогрваммы не найдено')
             logwritting(nowinstall)
 
 else:
@@ -201,6 +204,3 @@ else:
 print(linebreake)
 print(linebreake)
 
-# циклим чтобы при исполнении ехе не закрывался терминал
-'''while True:
-    pass'''
