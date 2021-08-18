@@ -41,9 +41,15 @@ def copying(arm, way_to):
     """
     Копируемнеобходимый дистрибутив на удаленный компьютер
     """
-    print(f'Copy distrib file to {arm}')
-    shutil.copytree(f'{way_to}\\soft', f'\\\\{arm}\\c$\\psexec')
-    print('file copying complete')
+    print(f'Копирование файлов на {arm}')
+    try:
+        shutil.copytree(f'{way_to}\\soft', f'\\\\{arm}\\c$\\psexec')
+        print('Копирование завршено')
+    except FileExistsError:
+        print('Папка уже существует, попытка удаления, затем копирования...')
+        shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
+        shutil.copytree(f'{way_to}\\soft', f'\\\\{arm}\\c$\\psexec')
+        print('Копирование завршено')
 
 
 def taskkill(arm, user, pasw):
@@ -124,27 +130,27 @@ with open(f'{way_to}\\log.txt', 'w+') as logfile:
 # печатаем список компьютеров где будутпроводиться работы
 with open(f'{way_to}\\list.txt') as list_of_arms:
     print(
-        f'Warning! automatic install {DT_version} '
-        f'will be iniciated on hosts below!'
+        f'Внимание! Будет установлен {DT_version} '
+        f'на список АРМ-ов ниже:'
     )
     for row_t in list_of_arms:
         print(row_t)
 
-print(f'way to UserSettings {user_sttings_inuse}')
+print(f'Путь к UserSettings: {user_sttings_inuse}')
 if first_install:
-    print('first instalation, no role changing')
+    print('Первая установка, без смены роли')
     is_change_roll = False  # глупо менять роль при первой установке
 elif no_install:
-    print('no installation, only change role')
+    print('Без установки, только смена роли')
 else:
-    print('old version DT will be removed')
-    print('Dispatch.exe process will be stoped')
-print(f'change role = {is_change_roll}')
+    print('Старое СПО будет удалено!')
+    print('Процесс Dispatch.exe будет остановлен!')
+print(f'Смена роли: {is_change_roll}')
 question_yn = input('Do you want to continue? Y/N ')
 if question_yn.lower() == 'y':
-    domen = input('type domen ')
-    user = f'{domen}\\' + input('type username ')
-    pasw = input('type password ')
+    domen = input('Введите домен ')
+    user = f'{domen}\\' + input('Введите логин ')
+    pasw = input('Введите пароль ')
 
     # читаем названия армов из файла list.txt
     with open(f'{way_to}\\list.txt') as list_of_arms:
@@ -156,62 +162,62 @@ if question_yn.lower() == 'y':
             # отделить строчкой утсановку разных армов
             print(linebreake)
 
-            if no_install:
-                print(f'copying role of {user_sttings_inuse}')
-                shutil.copyfile(
-                    user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
-                continue
-
             # определяем, доступен ли АРМ
             if not if_arm_online(arm):
-                logwritting('не доступен')
+                logwritting('Не доступен')
                 continue
+            # если настройка "только смена роли"
+            if no_install:
+                makedir_cfg(arm, way_to_copy_xml, user_sttings_inuse)
+                continue
+
             # копирование дистрибутива
-            try:
-                copying(arm, way_to)
-            except FileExistsError:
-                print('Folder allready exist, deleting')
-                shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
-                copying(arm, way_to)
+            print('Копирование дистрибутива в папке на удаленный АРМ')
 
             # если флаг первой установки False
             if not first_install:
                 # узнаём версию установленного ПО
-                print('searching old soft')
+                print('Проверка установленой версии...')
                 tmpprogramm = nowversion(arm, user, pasw, name_programm)
                 if tmpprogramm:
-                    print(f'find {tmpprogramm}, uninstalling')
+                    print(f'Найдена {tmpprogramm}, удаляем...')
                     taskkill(arm, user, pasw)
+
                     # удаляем установленную старую версию
                     uninstallprogramm(arm, user, pasw, tmpprogramm)
                 else:
-                    print('Программы не найдено')
-            # создаём директории настроек, копируем файл настроек
-            else:
+                    print('Программа не найдена')
+
+            else:  # не первая установка - создаём директории настроек,
+                # копируем файл настроек
                 makedir_cfg(arm, way_to_copy_xml, user_sttings_inuse)
+
             # устанавливаем новую версию
             installprogramm(way_to, arm, user, pasw, DT_version)
+
             # удаляем файлы дистрибутива
-            print('delete remote folder with distrib file')
+            print('Удаляем файлы дистрибутива с удаленного АРМ-а')
             shutil.rmtree(f'\\\\{arm}\\c$\\psexec')
 
             # если флаг смены роли, перезаписываем файл настроек
             if is_change_roll:
-                print(f'copying role of {user_sttings_inuse}')
+                print(
+                    f'Копируем следующие файлы настроек: {user_sttings_inuse}'
+                )
                 shutil.copyfile(
                     user_sttings_inuse, f'\\\\{arm}\\{way_to_copy_xml}')
 
             # проверяем версию установленной программы
-            print('checking version')
+            print('Проверяем версию установленной программы...')
             nowinstall = nowversion(arm, user, pasw, name_programm)
             if nowinstall:
-                print(f'installing {nowinstall} on {arm} complete')
+                print(f'Установка {nowinstall} на {arm} завершена')
             else:
-                print('Прогрваммы не найдено')
+                print('Программы не найдено')
             logwritting(nowinstall)
 
 else:
-    print('escaping instalation...')
+    print('Выход из программы инсталяции...')
 
 # зрительно отделяем последнюю этерацию
 print(linebreake)
