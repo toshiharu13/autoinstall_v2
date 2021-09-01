@@ -94,8 +94,16 @@ def makedir_cfg(arm, way_to_copy_xml, user_sttings_inuse):
 
 
 def uninstallprogramm(arm, user, pasw, tmpprogramm):
-    os.system(f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product where description=\"{tmpprogramm}\" uninstall')
-    print(f'{tmpprogramm} is uninstalled')
+    """
+    Удаление старой версии СПО
+    """
+    cmd = f'wmic /NODE:\"{arm}\" /USER:\"{user}\" /password: \"{pasw}\" product where description=\"{tmpprogramm}\" uninstall'
+    output = os.popen(cmd, 'r')
+    temp_list = []
+    for row in output:
+        row = row.encode('cp1251', 'replace').decode('cp866').strip()
+        temp_list.append(row)
+    print(f'{temp_list[0]}... done!')
 
 
 def installprogramm(way_to, arm, user, pasw, dt_version):
