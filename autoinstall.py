@@ -103,13 +103,15 @@ def uninstallprogramm(arm, user, pasw, tmpprogramm):
     for row in output:
         row = row.encode('cp1251', 'replace').decode('cp866').strip()
         temp_list.append(row)
-    print(f'{temp_list[0]}... done!')
+    print(f'{temp_list[0]}... Готово!')
 
 
 def installprogramm(way_to, arm, user, pasw, dt_version):
-    print('installing new version of soft')
-    os.system(
-        f'{way_to}\\psexec.exe \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{dt_version}\"')
+    print('Установка обновленного клиента')
+    cmd = f'{way_to}\\psexec.exe -s \\\\{arm} -u {user} -p {pasw} -h msiexec.exe /i \"C:\\psexec\\{dt_version}\"'
+    output = os.popen(cmd, 'r')
+    temp_list = [row for row in output]
+    print(temp_list[1].strip())
 
 
 
