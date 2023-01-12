@@ -32,3 +32,4 @@ venv/
 
 
 .idea
+/temp.py
